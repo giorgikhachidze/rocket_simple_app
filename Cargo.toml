@@ -1,0 +1,21 @@
+[package]
+name = "rocket_simple_app"
+version = "0.1.0"
+authors = ["giorgikhachidze <xacho.95@gmail.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+rocket = "0.4.2"
+serde = "1.0.102"
+serde_derive = "1.0.102"
+dotenv = "0.15.0"
+rand = "0.7.2"
+time = "0.1.42"
+diesel = { version = "1.4.3", features = ["mysql"] }
+
+[dependencies.rocket_contrib]
+version = "*"
+default-features = false
+features = ["tera_templates"]
