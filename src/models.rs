@@ -1,10 +1,24 @@
 use super::schema::*;
 
 #[derive(Queryable)]
+pub struct Users {
+    pub id: u64,
+    pub email: String,
+    pub password: String
+}
+
+#[derive(Queryable)]
 pub struct UsersSessions {
     pub id: u64,
     pub user_id: u64,
     pub token: String
+}
+
+#[derive(Insertable)]
+#[table_name = "users"]
+pub struct NewUser {
+    pub email: String,
+    pub password: String
 }
 
 #[derive(Insertable)]

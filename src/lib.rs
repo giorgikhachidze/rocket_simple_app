@@ -9,7 +9,7 @@ use diesel::prelude::*;
 use dotenv::dotenv;
 use std::env;
 
-use self::models::{NewUserSession, UsersSessions};
+use self::models::{Users, NewUser, NewUserSession, UsersSessions};
 
 pub fn estabilish_connection() -> MysqlConnection {
     dotenv().ok();
@@ -33,6 +33,25 @@ pub fn create_new_user_session(connection: &MysqlConnection, user_id: u64, token
 
     users_sessions::table
         .order(users_sessions::id.desc())
+        .first(connection)
+        .unwrap()
+}
+
+pub fn create_new_user(connection: &MysqlConnection, email: String, password: String) -> Users {
+    use schema::users;
+
+    let new_user = NewUser {
+        email: email,
+        password: password
+    };
+
+    diesel::insert_into(users::table)
+        .values(&new_user)
+        .execute(connection)
+        .expect("Error saving new user!");
+
+    users::table
+        .order(users::id.desc())
         .first(connection)
         .unwrap()
 }
