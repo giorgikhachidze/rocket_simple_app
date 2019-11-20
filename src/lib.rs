@@ -37,10 +37,11 @@ pub fn create_new_user_session(connection: &MysqlConnection, user_id: u64, token
         .unwrap()
 }
 
-pub fn create_new_user(connection: &MysqlConnection, email: String, password: String) -> Users {
+pub fn create_new_user(connection: &MysqlConnection, name: String, email: String, password: String) -> Users {
     use schema::users;
 
     let new_user = NewUser {
+        name: name,
         email: email,
         password: password
     };

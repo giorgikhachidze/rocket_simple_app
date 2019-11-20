@@ -2,62 +2,86 @@
 
 #[macro_use] extern crate rocket;
 #[macro_use] extern crate serde_derive;
+#[macro_use] extern crate lazy_static;
 
+extern crate regex;
 extern crate rand;
-extern crate serde;
 extern crate time;
+extern crate serde;
+extern crate bcrypt;
 extern crate rocket_simple_app;
 
+use regex::Regex;
 use time::Duration;
 use diesel::prelude::*;
 use rocket::request::Form;
 use rocket::response::Redirect;
+use bcrypt::{hash, DEFAULT_COST};
 use rocket::http::{Cookie, Cookies};
 use rocket_contrib::templates::Template;
 
-
 use rocket_simple_app::models::UsersSessions;
-use rocket_simple_app::{create_new_user_session, estabilish_connection};
+use rocket_simple_app::{create_new_user, create_new_user_session, estabilish_connection};
+
+lazy_static! {
+    static ref EMAIL_REGEX: regex::Regex = Regex::new("^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$").unwrap();
+}
 
 #[derive(Serialize)]
-struct IndexContext { 
-    header: String
+struct Context { 
+    header: String,
 }
 
 #[derive(FromForm)]
-struct User { 
+struct UserLogin { 
     email: String,
     password: String
 }
 
+#[derive(FromForm)]
+struct UserRegister {
+    name: String,
+    email: String,
+    password: String,
+    confirm_password: String
+}
 
 #[get("/")]
-fn index(cookies: Cookies) -> Template {
+fn index() -> Template {
+    let context = Context {
+        header: "Main page".to_string()
+    };
+    Template::render("index", &context)
+}
+
+
+#[get("/login")]
+fn login(cookies: Cookies) -> Template {
     match get_user_id_from_cookies(cookies) {
         Ok(user_id) => {
             if user_id == 1 {
-                let context = IndexContext {
-                    header: "You're logged in!".to_string(),
+                let context = Context {
+                    header: "You're logged in!".to_string()
                 };
-                Template::render("index", &context)
+                Template::render("login", &context)
             } else {
-                let context = IndexContext {
-                    header: "Sign in".to_string(),
+                let context = Context {
+                    header: "Login".to_string()
                 };
-                Template::render("index", &context)
+                Template::render("login", &context)
             }
         }
         Err(_not_logged_in) => {
-            let context = IndexContext {
-                header: "Sign in".to_string(),
+            let context = Context {
+                header: "Login".to_string()
             };
-            Template::render("index", &context)
+            Template::render("auth/login", &context)
         }
     }
 }
 
-#[post("/auth", data = "<input>")]
-fn login(input: Form<User>, mut cookies: Cookies) -> Result<Redirect, String> {
+#[post("/login", data = "<input>")]
+fn authorization(input: Form<UserLogin>, mut cookies: Cookies) -> Result<Redirect, String> {
     if input.email == "admin@admin.ge".to_string() && input.password == "admin" {
         match generate_session_token(64) {
             Ok(session_token) => {
@@ -71,12 +95,50 @@ fn login(input: Form<User>, mut cookies: Cookies) -> Result<Redirect, String> {
                 session_token.set_max_age(Duration::days(1));
                 cookies.add_private(session_token);
 
-                Ok(Redirect::to("/"))
+                Ok(Redirect::to("/login"))
             }
             Err(_) => Err(String::from("Login failed"))
         }
     } else {
         Err(String::from("Username or password incorrect"))
+    }
+}
+
+#[get("/register")]
+fn register() -> Template {
+    let context = Context {
+        header: "Registration page".to_string()
+    };
+    Template::render("auth/register", &context)
+}
+
+#[post("/register", data = "<input>")]
+fn registration(input: Form<UserRegister>) -> String {
+    let input: UserRegister = input.into_inner();
+
+    if input.name.is_empty() {
+        return String::from("The name field required.");
+    } else if !input.name.chars().all(char::is_alphanumeric) {
+        return String::from("The name format is invalid.");
+    } else if input.email.is_empty() {
+        return String::from("The email field required.");
+    } else if !EMAIL_REGEX.is_match(&input.email) {
+        return String::from("The email format is invalid.");
+    } else if input.password.is_empty() {
+        return String::from("The password field required.");
+    } else if input.confirm_password.is_empty() {
+        return String::from("The confirm password field required.");
+    } else if input.password != input.confirm_password {
+        return String::from("The passwords not match.");
+    } else {
+        match hash(&input.password, DEFAULT_COST) {
+            Ok(hashed_password) => {
+                let connection = estabilish_connection();
+                create_new_user(&connection, input.name, input.email, hashed_password);
+                return String::from("User registered");
+            }
+            Err(_) => return String::from("registration failed!"),
+        }
     }
 }
 
@@ -124,7 +186,7 @@ fn generate_session_token(length: u8) -> Result<String, std::io::Error> {
 
 fn main() {
     rocket::ignite()
-        .mount("/", routes![index, login])
+        .mount("/", routes![index, login, authorization, register, registration])
         .attach(Template::fairing())
         .launch();
 }

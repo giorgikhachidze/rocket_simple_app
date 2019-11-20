@@ -1,72 +1,16 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <title>{{ header }}</title>
-
-    <!-- Required meta tags -->
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-
-    <!-- CSS -->
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
-    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.1.1/css/all.css">
-    <style>
-    body {
-        background-color: #d33847;
-    }
-    .rounded-pill-left {
-        border-top-left-radius: 50rem;
-        border-bottom-left-radius: 50rem;
-    }
-    .rounded-pill-right {
-        border-top-right-radius: 50rem;
-        border-bottom-right-radius: 50rem;
-    }
-    </style>
-  </head>
-  <body>
-
-    <div class="container" style="height:100%;">
-        <div class="row justify-content-center" style="margin-top: 25vh;">
-	        <div class="col-md-5 col-lg-5">
+{% extends "layouts/base" %}
+{% block content %}
+    <div class="container">
+        <div class="row justify-content-center mt-5">
+	        <div class="col-md-8 col-lg-8">
                 <div class="card border-0 shadow-lg">
                     <div class="card-body">
-                        <h4 class="card-title text-center mb-4 mt-1">{{ header }}</h4>
-                        {% if header != "You're logged in!" %}
+                        <h1 class="text-center">Rocket simple application</h1>
                         <hr>
-                        <form action="/auth" method="POST">
-                            <div class="form-group">
-                                <div class="input-group">
-                                    <div class="input-group-prepend">
-                                        <span class="input-group-text rounded-pill-left px-3 shadow-sm"><i class="fas fa-user"></i></span>
-                                    </div>
-                                    <input name="email" class="form-control rounded-pill-right shadow-sm" placeholder="Email" type="email">
-                                </div>
-                            </div>
-                            <div class="form-group">
-                                <div class="input-group">
-                                    <div class="input-group-prepend">
-                                        <span class="input-group-text rounded-pill-left px-3 shadow-sm"><i class="fa fa-lock fa-fx"></i></span>
-                                    </div>
-                                    <input name="password" class="form-control rounded-pill-right shadow-sm" placeholder="********" type="password">
-                                </div>
-                            </div>
-                            <div class="form-group">
-                                <button type="submit" class="btn btn-dark btn-block rounded-pill shadow-sm">Authorization</button>
-                            </div>
-                            <p class="text-center"><a href="#" class="btn">Forgot password?</a></p>
-                        </form>
-                        {% endif %}
+                        <p class="text-center"><kbd>This is page: {{ header }}</kbd></p>
                     </div>
                 </div>
 	        </div>
         </div>
     </div>
-
-    <!-- Optional JavaScript -->
-    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
-    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
-  </body>
-</html>
+{% endblock content %}
