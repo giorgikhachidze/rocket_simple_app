@@ -16,11 +16,11 @@ use time::Duration;
 use diesel::prelude::*;
 use rocket::request::Form;
 use rocket::response::Redirect;
-use bcrypt::{hash, DEFAULT_COST};
+use bcrypt::{hash, verify, DEFAULT_COST};
 use rocket::http::{Cookie, Cookies};
 use rocket_contrib::templates::Template;
 
-use rocket_simple_app::models::UsersSessions;
+use rocket_simple_app::models::{Users, UsersSessions};
 use rocket_simple_app::{create_new_user, create_new_user_session, estabilish_connection};
 
 lazy_static! {
@@ -61,14 +61,14 @@ fn login(cookies: Cookies) -> Template {
         Ok(user_id) => {
             if user_id == 1 {
                 let context = Context {
-                    header: "You're logged in!".to_string()
+                    header: "You're logged in! admin".to_string()
                 };
-                Template::render("login", &context)
+                Template::render("auth/login", &context)
             } else {
                 let context = Context {
-                    header: "Login".to_string()
+                    header: "You're logged in! user".to_string()
                 };
-                Template::render("login", &context)
+                Template::render("auth/login", &context)
             }
         }
         Err(_not_logged_in) => {
@@ -82,25 +82,34 @@ fn login(cookies: Cookies) -> Template {
 
 #[post("/login", data = "<input>")]
 fn authorization(input: Form<UserLogin>, mut cookies: Cookies) -> Result<Redirect, String> {
-    if input.email == "admin@admin.ge".to_string() && input.password == "admin" {
-        match generate_session_token(64) {
-            Ok(session_token) => {
-                let connection = estabilish_connection();
-                let user_id = 1;
+    let input: UserLogin = input.into_inner();
 
-                create_new_user_session(&connection, user_id, session_token.clone());
+    match get_password_hash_from_email(input.email.clone()) {
+        Ok(password_hash) => match verify(&input.password, &password_hash) {
+            Ok(password_match) => {
+                if password_match {
+                    match generate_session_token(64) {
+                        Ok(session_token) => {
+                            let connection = estabilish_connection();
 
-                let mut session_token = Cookie::new("session_token", session_token);
-                
-                session_token.set_max_age(Duration::days(1));
-                cookies.add_private(session_token);
-
-                Ok(Redirect::to("/login"))
-            }
-            Err(_) => Err(String::from("Login failed"))
+                            create_new_user_session(&connection, get_user_id_from_email(input.email.clone()), session_token.clone());
+            
+                            let mut session_token = Cookie::new("session_token", session_token);
+                            
+                            session_token.set_max_age(Duration::days(1));
+                            cookies.add_private(session_token);
+            
+                            Ok(Redirect::to("/login"))
+                        }
+                        Err(_) => Err(String::from("Login failed"))
+                    }
+                } else {
+                    Err(String::from("Password is incorrect."))
+                }
+            },
+            Err(_) => Err(String::from("An error occurred")),
         }
-    } else {
-        Err(String::from("Username or password incorrect"))
+        Err(_) => Err(String::from("No user with this email address.")),
     }
 }
 
@@ -140,6 +149,39 @@ fn registration(input: Form<UserRegister>) -> String {
             Err(_) => return String::from("registration failed!"),
         }
     }
+}
+
+fn get_password_hash_from_email(data: String) -> Result<String, std::io::Error> {
+    use rocket_simple_app::schema::users::dsl::*;
+
+    let connection = estabilish_connection();
+    let results = users
+        .filter(email.eq(data))
+        .limit(1)
+        .load::<Users>(&connection)
+        .expect("Error loading users");
+
+    if results.len() == 1 {
+        return Ok(results[0].password.to_string());
+    } else {
+        return Err(std::io::Error::new(
+            std::io::ErrorKind::Other,
+            "No user found"
+        ));
+    }
+}
+
+fn get_user_id_from_email(data: String) -> u64 {
+    use rocket_simple_app::schema::users::dsl::*;
+
+    let connection = estabilish_connection();
+    let user = users
+        .filter(email.eq(data))
+        .limit(1)
+        .load::<Users>(&connection)
+        .expect("Error loading users");
+
+    return user[0].id;
 }
 
 fn get_user_id_from_cookies(mut cookies: Cookies) -> Result<u64, std::io::Error> {
