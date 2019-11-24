@@ -7,23 +7,23 @@ expressibility, and speed. Here's an example of user register and authorization.
 ## Getting Started
 
 #1 We need to install a safe, extensible ORM and Query Builder for Rust "[https://diesel.rs/guides/getting-started](https://diesel.rs/guides/getting-started)."
-```
+```rust
 cargo install diesel_cli
 ```
 
 #2 Build our application.
 
-```
+```rust
 cargo build
 ```
 
 #3 Database connection config file.
-```
+```rust
 DATABASE_URL=mysql://username:password@hostname/dbname
 ```
 
 #4 Run migration
-```
+```rust
 giorgi@giorgi:~/rocket_simple_app$ diesel migration run
 Running migration 2019-11-16-000655_create_users_sessions
 Running migration 2019-11-19-080726_create_users
@@ -31,7 +31,7 @@ Running migration 2019-11-19-080726_create_users
 
 #5 Runing our application.
 
-```
+```rust
 giorgi@giorgi:~/rocket_simple_app$ cargo run
    Compiling rocket_simple_app v0.1.0 (/home/giorgi/rocket_simple_app)
     Finished dev [unoptimized + debuginfo] target(s) in 3.55s
