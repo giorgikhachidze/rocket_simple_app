@@ -92,7 +92,7 @@ fn authorization(input: Form<UserLogin>, mut cookies: Cookies) -> Result<Redirec
                         Ok(session_token) => {
                             let connection = estabilish_connection();
 
-                            create_new_user_session(&connection, get_user_id_from_email(input.email.clone()), session_token.clone());
+                            create_new_user_session(&connection, get_user_id_from_email(input.email), session_token.clone());
             
                             let mut session_token = Cookie::new("session_token", session_token);
                             
