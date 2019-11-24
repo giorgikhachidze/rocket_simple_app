@@ -1,7 +1,7 @@
 # Rocket simple application
 [![Build Status](https://travis-ci.org/giorgikhachidze/rocket_simple_app.svg?branch=master)](https://travis-ci.org/giorgikhachidze/rocket_simple_app)
-![Crates.io](https://img.shields.io/crates/l/rocket/0.4.2)
-![GitHub repo size](https://img.shields.io/github/repo-size/giorgikhachidze/rocket_simple_app?label=code%20size)
+[![Crates.io](https://img.shields.io/crates/l/rocket/0.4.2)](https://www.apache.org/foundation/license-faq.html)
+[![GitHub repo size](https://img.shields.io/github/repo-size/giorgikhachidze/rocket_simple_app?label=code%20size)](https://github.com/giorgikhachidze/rocket_simple_app)
 [![Crates.io](https://img.shields.io/crates/v/rocket?&label=rocket)](https://rocket.rs/)
 [![Crates.io](https://img.shields.io/crates/v/diesel?&label=diesel)](http://diesel.rs/)
 
