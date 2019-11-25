@@ -13,11 +13,14 @@ extern crate rocket_simple_app;
 
 use regex::Regex;
 use time::Duration;
+use rocket::Request;
+use serde_json::json;
 use diesel::prelude::*;
 use rocket::request::Form;
 use rocket::response::Redirect;
-use bcrypt::{hash, verify, DEFAULT_COST};
 use rocket::http::{Cookie, Cookies};
+use rocket_contrib::serve::StaticFiles;
+use bcrypt::{hash, verify, DEFAULT_COST};
 use rocket_contrib::templates::Template;
 
 use rocket_simple_app::models::{Users, UsersSessions};
@@ -47,35 +50,33 @@ struct UserRegister {
 }
 
 #[get("/")]
-fn index() -> Template {
-    let context = Context {
-        header: "Main page".to_string()
-    };
-    Template::render("index", &context)
+fn index(cookies: Cookies) -> Template {
+    match get_user_id_from_cookies(cookies) {
+        Ok(_user_logged_in) => {
+            let context = Context {
+                header: "You'r logged in!".to_string()
+            };
+            Template::render("index", &context)
+        },
+        Err(_not_logged_in) => {
+            let context = Context {
+                header: "Main page".to_string()
+            };
+            Template::render("index", &context)
+        }
+    }
 }
 
 
 #[get("/login")]
-fn login(cookies: Cookies) -> Template {
+fn login(cookies: Cookies) -> Result<Template, Redirect> {
     match get_user_id_from_cookies(cookies) {
-        Ok(user_id) => {
-            if user_id == 1 {
-                let context = Context {
-                    header: "You're logged in! admin".to_string()
-                };
-                Template::render("auth/login", &context)
-            } else {
-                let context = Context {
-                    header: "You're logged in! user".to_string()
-                };
-                Template::render("auth/login", &context)
-            }
-        }
+        Ok(_user_logged_in) => Err(Redirect::to("/")),
         Err(_not_logged_in) => {
             let context = Context {
                 header: "Login".to_string()
             };
-            Template::render("auth/login", &context)
+            Ok(Template::render("auth/login", &context))
         }
     }
 }
@@ -149,6 +150,16 @@ fn registration(input: Form<UserRegister>) -> String {
             Err(_) => return String::from("registration failed!"),
         }
     }
+}
+
+#[catch(404)]
+fn not_found(req: &Request) -> Template {
+    let context = json!({
+        "header": "404 error",
+        "path": req.uri().to_string()
+    });
+
+    Template::render("404", &context)
 }
 
 fn get_password_hash_from_email(data: String) -> Result<String, std::io::Error> {
@@ -229,6 +240,8 @@ fn generate_session_token(length: u8) -> Result<String, std::io::Error> {
 fn main() {
     rocket::ignite()
         .mount("/", routes![index, login, authorization, register, registration])
+        .mount("/", StaticFiles::from("public"))
+        .register(catchers![not_found])
         .attach(Template::fairing())
         .launch();
 }

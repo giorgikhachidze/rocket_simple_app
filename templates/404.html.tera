@@ -1,0 +1,17 @@
+{% extends "layouts/base" %}
+{% block content %}
+    <div class="container">
+        <div class="row justify-content-center mt-5">
+	        <div class="col-md-8 col-lg-8">
+                <div class="card border-0 shadow-lg">
+                    <div class="card-body">
+                        <h1 class="text-center">There was 404 error</h1>
+                        <hr>
+                        <p class="text-center">Page with this url not found.<br> help: Maybe you try to load POST request url with GET.</p>
+                        <p class="text-center"><kbd>Error url: {{ path }}</kbd></p>
+                    </div>
+                </div>
+	        </div>
+        </div>
+    </div>
+{% endblock content %}
