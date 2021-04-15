@@ -21,7 +21,7 @@ cargo install diesel_cli
 cargo build
 ```
 
-#3 Database connection config file.
+#3 Database connection .env.
 ```rust
 DATABASE_URL=mysql://username:password@hostname/dbname
 ```
